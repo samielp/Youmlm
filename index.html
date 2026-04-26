@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PIXELZONE — HTML5 Games</title>
+  <meta name="description" content="Play the best free HTML5 games online. No downloads, no plugins — just pure browser gaming." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- NOISE OVERLAY -->
+<div class="noise"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">PIXEL<strong>ZONE</strong></span>
+    </a>
+    <nav class="nav">
+      <a href="index.html" class="nav-link active">All Games</a>
+      <a href="#arcade" class="nav-link">Arcade</a>
+      <a href="#puzzle" class="nav-link">Puzzle</a>
+      <a href="#action" class="nav-link">Action</a>
+      <a href="#about" class="nav-link">About</a>
+    </nav>
+    <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Free · Instant · No Download</p>
+    <h1 class="hero-title">PLAY<br/><span class="hero-accent">HTML5</span><br/>GAMES</h1>
+    <p class="hero-sub">10 hand-crafted browser games. Zero installs. Pure fun.</p>
+    <a href="#games" class="cta-btn">Start Playing ↓</a>
+  </div>
+  <div class="hero-ticker">
+    <div class="ticker-track">
+      <span>SNAKE &nbsp;·&nbsp; TETRIS &nbsp;·&nbsp; BREAKOUT &nbsp;·&nbsp; FLAPPY &nbsp;·&nbsp; MEMORY &nbsp;·&nbsp; PONG &nbsp;·&nbsp; MINESWEEPER &nbsp;·&nbsp; 2048 &nbsp;·&nbsp; ASTEROIDS &nbsp;·&nbsp; TYPING &nbsp;·&nbsp;</span>
+      <span>SNAKE &nbsp;·&nbsp; TETRIS &nbsp;·&nbsp; BREAKOUT &nbsp;·&nbsp; FLAPPY &nbsp;·&nbsp; MEMORY &nbsp;·&nbsp; PONG &nbsp;·&nbsp; MINESWEEPER &nbsp;·&nbsp; 2048 &nbsp;·&nbsp; ASTEROIDS &nbsp;·&nbsp; TYPING &nbsp;·&nbsp;</span>
+    </div>
+  </div>
+</section>
+
+<!-- FILTER BAR -->
+<div class="filter-bar" id="games">
+  <div class="filter-inner">
+    <span class="filter-label">FILTER:</span>
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="arcade">Arcade</button>
+    <button class="filter-btn" data-cat="puzzle">Puzzle</button>
+    <button class="filter-btn" data-cat="action">Action</button>
+  </div>
+</div>
+
+<!-- GAMES GRID -->
+<main class="games-grid" id="arcade">
+  <!-- SNAKE -->
+  <article class="game-card" data-cat="arcade">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#0f2027,#203a43,#2c5364)">
+      <div class="card-emoji">🐍</div>
+      <span class="card-badge arcade">ARCADE</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Snake Classic</h2>
+      <p class="card-desc">Guide the snake, eat the food, don't hit the walls. How long can you grow?</p>
+      <div class="card-meta">
+        <span class="card-tag">Keyboard</span>
+        <span class="card-tag">All Ages</span>
+      </div>
+      <a href="games/snake.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- TETRIS -->
+  <article class="game-card" data-cat="puzzle">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)">
+      <div class="card-emoji">🟦</div>
+      <span class="card-badge puzzle">PUZZLE</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Tetris</h2>
+      <p class="card-desc">The legendary block-stacking puzzle. Clear lines before the stack reaches the top.</p>
+      <div class="card-meta">
+        <span class="card-tag">Keyboard</span>
+        <span class="card-tag">Classic</span>
+      </div>
+      <a href="games/tetris.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- BREAKOUT -->
+  <article class="game-card" data-cat="arcade">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#200122,#6f0000)">
+      <div class="card-emoji">🧱</div>
+      <span class="card-badge arcade">ARCADE</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Breakout</h2>
+      <p class="card-desc">Smash bricks with a bouncing ball. Don't let it fall past your paddle!</p>
+      <div class="card-meta">
+        <span class="card-tag">Mouse/Touch</span>
+        <span class="card-tag">Retro</span>
+      </div>
+      <a href="games/breakout.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- FLAPPY BIRD -->
+  <article class="game-card" data-cat="action">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#134e5e,#71b280)">
+      <div class="card-emoji">🐦</div>
+      <span class="card-badge action">ACTION</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Flappy Bird</h2>
+      <p class="card-desc">Tap to flap through the pipes. Deceptively simple, dangerously addictive.</p>
+      <div class="card-meta">
+        <span class="card-tag">Tap/Click</span>
+        <span class="card-tag">Casual</span>
+      </div>
+      <a href="games/flappy.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- MEMORY -->
+  <article class="game-card" data-cat="puzzle">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#232526,#414345)">
+      <div class="card-emoji">🃏</div>
+      <span class="card-badge puzzle">PUZZLE</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Memory Match</h2>
+      <p class="card-desc">Flip cards and find matching pairs. Train your memory against the clock.</p>
+      <div class="card-meta">
+        <span class="card-tag">Mouse/Touch</span>
+        <span class="card-tag">Brain</span>
+      </div>
+      <a href="games/memory.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- PONG -->
+  <article class="game-card" data-cat="arcade">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#000000,#434343)">
+      <div class="card-emoji">🏓</div>
+      <span class="card-badge arcade">ARCADE</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Pong</h2>
+      <p class="card-desc">The OG video game. 1-player vs AI or 2-player on the same keyboard.</p>
+      <div class="card-meta">
+        <span class="card-tag">Keyboard</span>
+        <span class="card-tag">1-2 Players</span>
+      </div>
+      <a href="games/pong.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- MINESWEEPER -->
+  <article class="game-card" data-cat="puzzle">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#1d3557,#457b9d)">
+      <div class="card-emoji">💣</div>
+      <span class="card-badge puzzle">PUZZLE</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Minesweeper</h2>
+      <p class="card-desc">Logic and luck. Clear the field without detonating the hidden mines.</p>
+      <div class="card-meta">
+        <span class="card-tag">Mouse/Touch</span>
+        <span class="card-tag">Logic</span>
+      </div>
+      <a href="games/minesweeper.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- 2048 -->
+  <article class="game-card" data-cat="puzzle">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#f7971e,#ffd200)">
+      <div class="card-emoji">🔢</div>
+      <span class="card-badge puzzle">PUZZLE</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">2048</h2>
+      <p class="card-desc">Slide and merge tiles to reach 2048. Elegant math disguised as a game.</p>
+      <div class="card-meta">
+        <span class="card-tag">Swipe/Keys</span>
+        <span class="card-tag">Numbers</span>
+      </div>
+      <a href="games/2048.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- ASTEROIDS -->
+  <article class="game-card" data-cat="action">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#0a0a0a,#1a0533)">
+      <div class="card-emoji">🚀</div>
+      <span class="card-badge action">ACTION</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Asteroids</h2>
+      <p class="card-desc">Pilot your ship, shoot rocks, survive the void. Arcade classic reborn.</p>
+      <div class="card-meta">
+        <span class="card-tag">Keyboard</span>
+        <span class="card-tag">Shooter</span>
+      </div>
+      <a href="games/asteroids.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+
+  <!-- TYPING SPEED -->
+  <article class="game-card" data-cat="action">
+    <div class="card-thumb" style="background: linear-gradient(135deg,#11998e,#38ef7d)">
+      <div class="card-emoji">⌨️</div>
+      <span class="card-badge action">ACTION</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Typing Speed</h2>
+      <p class="card-desc">Type words before they hit the ground. Beat your WPM record!</p>
+      <div class="card-meta">
+        <span class="card-tag">Keyboard</span>
+        <span class="card-tag">Skill</span>
+      </div>
+      <a href="games/typing.html" class="play-btn">Play Now →</a>
+    </div>
+  </article>
+</main>
+
+<!-- ABOUT -->
+<section class="about-section" id="about">
+  <div class="about-inner">
+    <div class="about-text">
+      <p class="about-eyebrow">About PIXELZONE</p>
+      <h2 class="about-title">Games that run in your browser. No BS.</h2>
+      <p class="about-body">Every game on PIXELZONE is built with pure HTML5, CSS3, and vanilla JavaScript. No Flash. No Unity WebGL downloads. No ads. Just click and play on any device, any browser.</p>
+      <div class="about-stats">
+        <div class="stat"><span class="stat-num">10</span><span class="stat-label">Games</span></div>
+        <div class="stat"><span class="stat-num">0</span><span class="stat-label">Downloads</span></div>
+        <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Fun</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-logo">⬡ PIXELZONE</span>
+    <p class="footer-copy">Built with HTML5 · Deployed on Vercel · Open Source</p>
+    <div class="footer-links">
+      <a href="https://github.com" target="_blank">GitHub</a>
+      <a href="index.html">All Games</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
