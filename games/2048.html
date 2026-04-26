@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>2048 — PIXELZONE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    .g2048{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;background:#18181c;padding:12px;border-radius:16px;border:1px solid var(--border);width:340px;max-width:96vw;}
+    .tile{width:72px;height:72px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.6rem;letter-spacing:.03em;transition:background .15s;aspect-ratio:1;}
+    .tile-0{background:#2a2a30;}
+    .tile-2{background:#ecf0f1;color:#2d3436;}
+    .tile-4{background:#dfe6e9;color:#2d3436;}
+    .tile-8{background:#fdcb6e;color:#fff;}
+    .tile-16{background:#e17055;color:#fff;}
+    .tile-32{background:#d63031;color:#fff;}
+    .tile-64{background:#e84393;color:#fff;}
+    .tile-128{background:#6c5ce7;color:#fff;font-size:1.3rem;}
+    .tile-256{background:#0984e3;color:#fff;font-size:1.3rem;}
+    .tile-512{background:#00b894;color:#fff;font-size:1.3rem;}
+    .tile-1024{background:#e8ff47;color:#0c0c0e;font-size:1.1rem;}
+    .tile-2048{background:#ff4757;color:#fff;font-size:1.1rem;box-shadow:0 0 30px rgba(255,71,87,.5);}
+    @media(max-width:400px){.g2048{width:280px;}.tile{width:57px;height:57px;font-size:1.2rem;}}
+  </style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="game-page">
+  <div class="game-header">
+    <a href="../index.html">← Back</a>
+    <h1>🔢 2048</h1>
+  </div>
+  <div class="game-area">
+    <div class="game-ui">
+      <span class="score-label">SCORE</span><span class="score-val" id="score">0</span>
+      <span class="score-label">BEST</span><span class="score-val" id="best">0</span>
+      <button class="game-btn" id="newBtn">New Game</button>
+    </div>
+    <div id="boardEl" class="g2048"></div>
+    <p class="game-hint">Arrow Keys or Swipe to merge tiles · Reach 2048!</p>
+  </div>
+</div>
+<script>
+let board,score,best=0,over=false;
+
+function empty(){return Array.from({length:4},()=>Array(4).fill(0));}
+
+function addTile(b){
+  const empties=[];
+  b.forEach((r,ri)=>r.forEach((v,ci)=>{if(!v)empties.push([ri,ci]);}));
+  if(!empties.length)return;
+  const[r,c]=empties[Math.floor(Math.random()*empties.length)];
+  b[r][c]=Math.random()<.9?2:4;
+}
+
+function init(){
+  board=empty();score=0;over=false;
+  addTile(board);addTile(board);
+  document.getElementById('score').textContent=0;
+  render();
+}
+
+function render(){
+  const el=document.getElementById('boardEl');
+  el.innerHTML='';
+  board.forEach(row=>row.forEach(v=>{
+    const t=document.createElement('div');
+    const cls=v&&v<=2048?v:v>2048?2048:0;
+    t.className=`tile tile-${cls}`;
+    t.textContent=v||'';
+    el.appendChild(t);
+  }));
+}
+
+function slideRow(row){
+  let r=row.filter(v=>v);
+  for(let i=0;i<r.length-1;i++){
+    if(r[i]===r[i+1]){r[i]*=2;score+=r[i];r.splice(i+1,1);}
+  }
+  while(r.length<4)r.push(0);
+  return r;
+}
+
+function move(dir){
+  if(over)return;
+  let moved=false;
+  const b=board.map(r=>[...r]);
+  if(dir==='left'){board=board.map(r=>{const n=slideRow(r);if(n.join()!==r.join())moved=true;return n;});}
+  else if(dir==='right'){board=board.map(r=>{const rv=[...r].reverse(),n=slideRow(rv).reverse();if(n.join()!==r.join())moved=true;return n;});}
+  else if(dir==='up'||dir==='down'){
+    for(let c=0;c<4;c++){
+      let col=board.map(r=>r[c]);
+      if(dir==='down')col.reverse();
+      const n=slideRow(col);
+      if(dir==='down')n.reverse();
+      if(n.join()!==col.join())moved=true; // Note: col is pre-reverse, so compare original
+      board.forEach((r,ri)=>r[c]=n[ri]);
+    }
+    moved = JSON.stringify(board)!==JSON.stringify(b);
+  }
+  if(moved){addTile(board);document.getElementById('score').textContent=score;if(score>best){best=score;document.getElementById('best').textContent=best;}}
+  render();
+  if(!canMove())gameOver();
+}
+
+function canMove(){
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++){
+    if(!board[r][c])return true;
+    if(c<3&&board[r][c]===board[r][c+1])return true;
+    if(r<3&&board[r][c]===board[r+1][c])return true;
+  }
+  return false;
+}
+
+function gameOver(){over=true;setTimeout(()=>alert(`Game Over!\nScore: ${score}`),100);}
+
+document.getElementById('newBtn').addEventListener('click',init);
+document.addEventListener('keydown',e=>{
+  const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
+  if(map[e.key]){move(map[e.key]);e.preventDefault();}
+});
+
+// Swipe
+let tx=0,ty=0;
+document.getElementById('boardEl').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.getElementById('boardEl').addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>Math.abs(dy))move(dx>0?'right':'left');
+  else move(dy>0?'down':'up');
+},{passive:true});
+
+init();
+</script>
+</body>
+</html>

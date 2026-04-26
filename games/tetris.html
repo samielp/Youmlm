@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Tetris — PIXELZONE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    .tetris-wrap { display:flex; gap:2rem; align-items:flex-start; }
+    .tetris-side { display:flex;flex-direction:column;gap:1rem;min-width:120px; }
+    .side-box { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem; }
+    .side-label { font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;color:var(--text-muted);margin-bottom:.5rem; }
+    .side-val { font-family:var(--font-display);font-size:2rem;color:var(--accent); }
+    @media(max-width:600px){.tetris-wrap{flex-direction:column;align-items:center;}.tetris-side{flex-direction:row;min-width:unset;}}
+  </style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="game-page">
+  <div class="game-header">
+    <a href="../index.html">← Back</a>
+    <h1>🟦 Tetris</h1>
+  </div>
+  <div class="game-area">
+    <div class="tetris-wrap">
+      <div class="game-canvas-wrap" style="position:relative">
+        <canvas id="gameCanvas" width="300" height="600"></canvas>
+        <div class="overlay" id="overlay">
+          <h2 id="overlayTitle">TETRIS</h2>
+          <p id="overlayMsg">Arrow keys to move · Up to rotate · P to pause</p>
+          <button class="game-btn" id="startBtn">Start Game</button>
+        </div>
+      </div>
+      <div class="tetris-side">
+        <div class="side-box">
+          <div class="side-label">SCORE</div>
+          <div class="side-val" id="score">0</div>
+        </div>
+        <div class="side-box">
+          <div class="side-label">LINES</div>
+          <div class="side-val" id="lines">0</div>
+        </div>
+        <div class="side-box">
+          <div class="side-label">LEVEL</div>
+          <div class="side-val" id="level">1</div>
+        </div>
+        <div class="side-box">
+          <div class="side-label">NEXT</div>
+          <canvas id="nextCanvas" width="100" height="100"></canvas>
+        </div>
+        <button class="game-btn secondary" id="pauseBtn" style="display:none">Pause</button>
+      </div>
+    </div>
+    <p class="game-hint">← → Move &nbsp;·&nbsp; ↑ Rotate &nbsp;·&nbsp; ↓ Soft Drop &nbsp;·&nbsp; Space Hard Drop</p>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const nextCanvas = document.getElementById('nextCanvas');
+const nctx = nextCanvas.getContext('2d');
+const COLS=10, ROWS=20, CELL=30;
+const COLORS=['','#ff4757','#ffa502','#eccc68','#2ed573','#1e90ff','#a29bfe','#fd79a8'];
+const SHAPES=[null,
+  [[1,1,1,1]],
+  [[1,1],[1,1]],
+  [[0,1,0],[1,1,1]],
+  [[0,1,1],[1,1,0]],
+  [[1,1,0],[0,1,1]],
+  [[1,0,0],[1,1,1]],
+  [[0,0,1],[1,1,1]]
+];
+
+let board, piece, nextPiece, score, lines, level, dropTimer, lastTime, animId, running=false, paused=false;
+
+function newBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(0));}
+function randPiece(){
+  const type=Math.floor(Math.random()*7)+1;
+  const shape=SHAPES[type].map(r=>[...r]);
+  return{type,shape,x:Math.floor((COLS-shape[0].length)/2),y:0};
+}
+
+function collides(p,b,ox=0,oy=0,s=p.shape){
+  for(let r=0;r<s.length;r++)for(let c=0;c<s[r].length;c++)
+    if(s[r][c]&&(b[r+p.y+oy]===undefined||b[r+p.y+oy][c+p.x+ox]===undefined||b[r+p.y+oy][c+p.x+ox]))return true;
+  return false;
+}
+
+function rotate(shape){
+  const N=shape.length, M=shape[0].length;
+  const r=Array.from({length:M},()=>Array(N).fill(0));
+  for(let i=0;i<N;i++)for(let j=0;j<M;j++)r[j][N-1-i]=shape[i][j];
+  return r;
+}
+
+function merge(){
+  piece.shape.forEach((row,r)=>row.forEach((v,c)=>{if(v)board[r+piece.y][c+piece.x]=piece.type;}));
+}
+
+function clearLines(){
+  let cleared=0;
+  for(let r=ROWS-1;r>=0;r--){
+    if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}
+  }
+  if(cleared){
+    const pts=[0,100,300,500,800];
+    score+=pts[cleared]*level;
+    lines+=cleared;
+    level=Math.floor(lines/10)+1;
+    document.getElementById('score').textContent=score;
+    document.getElementById('lines').textContent=lines;
+    document.getElementById('level').textContent=level;
+  }
+}
+
+function drawBoard(){
+  ctx.fillStyle='#0c0c0e'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // grid
+  ctx.strokeStyle='#18181c'; ctx.lineWidth=.5;
+  for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*CELL,0);ctx.lineTo(c*CELL,canvas.height);ctx.stroke();}
+  for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*CELL);ctx.lineTo(canvas.width,r*CELL);ctx.stroke();}
+  // board
+  board.forEach((row,r)=>row.forEach((v,c)=>{if(v)drawCell(ctx,c,r,v);}));
+  // ghost
+  let ghost={...piece,shape:piece.shape.map(r=>[...r])};
+  while(!collides(ghost,board,0,1))ghost.y++;
+  ghost.shape.forEach((row,r)=>row.forEach((v,c)=>{
+    if(v){ctx.strokeStyle=COLORS[piece.type];ctx.lineWidth=1;ctx.strokeRect(c*CELL+ghost.x*CELL+2,r*CELL+ghost.y*CELL+2,CELL-4,CELL-4);}
+  }));
+  // piece
+  piece.shape.forEach((row,r)=>row.forEach((v,c)=>{if(v)drawCell(ctx,c+piece.x,r+piece.y,piece.type);}));
+}
+
+function drawCell(c,x,y,type){
+  const color=COLORS[type];
+  c.fillStyle=color;
+  c.shadowColor=color; c.shadowBlur=6;
+  c.fillRect(x*CELL+1,y*CELL+1,CELL-2,CELL-2);
+  c.shadowBlur=0;
+  c.fillStyle='rgba(255,255,255,.15)';
+  c.fillRect(x*CELL+1,y*CELL+1,CELL-2,4);
+}
+
+function drawNext(){
+  nctx.fillStyle='#0c0c0e'; nctx.fillRect(0,0,nextCanvas.width,nextCanvas.height);
+  const s=nextPiece.shape, offX=(4-s[0].length)/2, offY=(4-s.length)/2;
+  s.forEach((row,r)=>row.forEach((v,c)=>{if(v)drawCell(nctx,c+offX,r+offY,nextPiece.type);}));
+}
+
+function gameLoop(ts){
+  if(!running||paused){animId=requestAnimationFrame(gameLoop);return;}
+  if(!lastTime)lastTime=ts;
+  const dt=ts-lastTime; lastTime=ts;
+  dropTimer+=dt;
+  const speed=Math.max(50,1000-level*80);
+  if(dropTimer>speed){dropTimer=0;drop();}
+  drawBoard(); drawNext();
+  animId=requestAnimationFrame(gameLoop);
+}
+
+function drop(){
+  if(!collides(piece,board,0,1)){piece.y++;}
+  else{
+    merge(); clearLines();
+    piece=nextPiece; nextPiece=randPiece();
+    if(collides(piece,board)){running=false;showOverlay('GAME OVER',`Score: ${score}`);}
+  }
+}
+
+function showOverlay(title,msg){
+  document.getElementById('overlayTitle').textContent=title;
+  document.getElementById('overlayMsg').textContent=msg;
+  document.getElementById('overlay').classList.remove('hidden');
+  document.getElementById('pauseBtn').style.display='none';
+}
+
+function startGame(){
+  board=newBoard(); piece=randPiece(); nextPiece=randPiece();
+  score=0;lines=0;level=1;dropTimer=0;lastTime=0;
+  document.getElementById('score').textContent=0;
+  document.getElementById('lines').textContent=0;
+  document.getElementById('level').textContent=1;
+  document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('pauseBtn').style.display='';
+  running=true; paused=false;
+  cancelAnimationFrame(animId);
+  animId=requestAnimationFrame(gameLoop);
+}
+
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('pauseBtn').addEventListener('click',()=>{
+  paused=!paused;
+  document.getElementById('pauseBtn').textContent=paused?'Resume':'Pause';
+  if(paused)showOverlay('PAUSED','Press P or Resume');
+  else document.getElementById('overlay').classList.add('hidden');
+});
+
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  if(e.key==='p'||e.key==='P'){document.getElementById('pauseBtn').click();return;}
+  if(paused)return;
+  switch(e.key){
+    case'ArrowLeft':if(!collides(piece,board,-1))piece.x--;break;
+    case'ArrowRight':if(!collides(piece,board,1))piece.x++;break;
+    case'ArrowDown':drop();break;
+    case'ArrowUp':{const r=rotate(piece.shape);if(!collides(piece,board,0,0,r))piece.shape=r;break;}
+    case' ':{while(!collides(piece,board,0,1))piece.y++;drop();break;}
+  }
+  e.preventDefault();
+});
+
+// Draw initial screen
+board=newBoard(); piece=randPiece(); nextPiece=randPiece();
+drawBoard(); drawNext();
+</script>
+</body>
+</html>

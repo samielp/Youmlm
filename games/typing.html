@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Typing Speed — PIXELZONE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    .typing-area{max-width:640px;width:100%;}
+    .words-display{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;font-family:var(--font-mono);font-size:1.1rem;line-height:2;letter-spacing:.03em;min-height:120px;position:relative;overflow:hidden;}
+    .word{display:inline-block;margin:0 .2rem;padding:.1rem .25rem;border-radius:4px;transition:background .1s;}
+    .word.correct{color:#2ed573;}
+    .word.wrong{color:#ff4757;background:rgba(255,71,87,.12);text-decoration:underline;}
+    .word.current{background:rgba(232,255,71,.12);color:#e8ff47;outline:1px solid rgba(232,255,71,.4);border-radius:4px;}
+    .type-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;font-family:var(--font-mono);font-size:1rem;color:var(--text);outline:none;transition:border-color .2s;margin-top:1rem;}
+    .type-input:focus{border-color:var(--accent);}
+    .type-input.wrong-input{border-color:#ff4757;background:rgba(255,71,87,.05);}
+    .typing-stats{display:flex;gap:2rem;flex-wrap:wrap;}
+    .progress-bar{width:100%;height:4px;background:var(--border);border-radius:2px;margin-bottom:1rem;}
+    .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
+  </style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="game-page">
+  <div class="game-header">
+    <a href="../index.html">← Back</a>
+    <h1>⌨️ Typing Speed</h1>
+  </div>
+  <div class="game-area">
+    <div class="typing-stats">
+      <span><span class="score-label">WPM </span><span class="score-val" id="wpm">0</span></span>
+      <span><span class="score-label">ACCURACY </span><span class="score-val" id="acc">100%</span></span>
+      <span><span class="score-label">TIME </span><span class="score-val" id="time">60</span></span>
+      <span><span class="score-label">BEST WPM </span><span class="score-val" id="best">0</span></span>
+      <button class="game-btn" id="restartBtn">Restart</button>
+    </div>
+    <div class="typing-area">
+      <div class="progress-bar"><div class="progress-fill" id="progress" style="width:100%"></div></div>
+      <div class="words-display" id="wordsDisplay"></div>
+      <input type="text" class="type-input" id="typeInput" placeholder="Start typing to begin..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+    </div>
+    <p class="game-hint">Type as fast as you can · 60 seconds</p>
+  </div>
+</div>
+<script>
+const WORDS=['the','be','to','of','and','a','in','that','have','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us','great','between','need','large','often','hand','high','place','hold','turn','been'];
+
+let words=[],currentIdx=0,correct=0,wrong=0,started=false,timerInt,timeLeft=60,best=0,total=0;
+
+function genWords(){
+  return Array.from({length:80},()=>WORDS[Math.floor(Math.random()*WORDS.length)]);
+}
+
+function init(){
+  clearInterval(timerInt);
+  words=genWords();currentIdx=0;correct=0;wrong=0;started=false;timeLeft=60;total=0;
+  document.getElementById('wpm').textContent=0;
+  document.getElementById('acc').textContent='100%';
+  document.getElementById('time').textContent=60;
+  document.getElementById('progress').style.width='100%';
+  document.getElementById('typeInput').value='';
+  document.getElementById('typeInput').disabled=false;
+  document.getElementById('typeInput').className='type-input';
+  document.getElementById('typeInput').placeholder='Start typing to begin...';
+  renderWords();
+  setTimeout(()=>document.getElementById('typeInput').focus(),100);
+}
+
+function renderWords(){
+  const el=document.getElementById('wordsDisplay');
+  el.innerHTML=words.map((w,i)=>`<span class="word ${i<currentIdx?(words[i].correct?'correct':'wrong'):i===currentIdx?'current':''}" id="w${i}">${w}</span>`).join('');
+  const cur=document.getElementById('w'+currentIdx);
+  if(cur)cur.scrollIntoView({block:'nearest'});
+}
+
+function startTimer(){
+  timerInt=setInterval(()=>{
+    timeLeft--;
+    document.getElementById('time').textContent=timeLeft;
+    document.getElementById('progress').style.width=(timeLeft/60*100)+'%';
+    const elapsed=(60-timeLeft)/60;
+    if(elapsed>0){const wpm=Math.round((correct/5)/((60-timeLeft)/60));document.getElementById('wpm').textContent=wpm;}
+    if(timeLeft<=0){endGame();}
+  },1000);
+}
+
+function endGame(){
+  clearInterval(timerInt);
+  const wpm=Math.round((correct/5)/(60/60));
+  if(wpm>best){best=wpm;document.getElementById('best').textContent=best;}
+  document.getElementById('wpm').textContent=wpm;
+  document.getElementById('typeInput').disabled=true;
+  document.getElementById('typeInput').placeholder=`Done! ${wpm} WPM — Press Restart to play again`;
+}
+
+document.getElementById('typeInput').addEventListener('input',e=>{
+  const val=e.target.value;
+  if(!started&&val.length>0){started=true;startTimer();}
+  if(val.endsWith(' ')){
+    const typed=val.trim();
+    const expected=words[currentIdx];
+    words[currentIdx]={...{word:expected,correct:typed===expected}};
+    if(typed===expected)correct+=expected.length+1;
+    else wrong++;
+    total++;
+    document.getElementById('acc').textContent=Math.round((total-wrong)/Math.max(1,total)*100)+'%';
+    currentIdx++;
+    e.target.value='';
+    e.target.className='type-input';
+    renderWords();
+    if(currentIdx>=words.length){words=[...words,...genWords()];}
+  }else{
+    const expected=words[currentIdx];
+    e.target.className='type-input'+(val&&!expected.startsWith(val)?' wrong-input':'');
+  }
+});
+
+document.getElementById('restartBtn').addEventListener('click',init);
+init();
+</script>
+</body>
+</html>

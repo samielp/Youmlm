@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Breakout — PIXELZONE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+</head>
+<body>
+<div class="noise"></div>
+<div class="game-page">
+  <div class="game-header">
+    <a href="../index.html">← Back</a>
+    <h1>🧱 Breakout</h1>
+  </div>
+  <div class="game-area">
+    <div class="game-ui">
+      <span class="score-label">SCORE</span><span class="score-val" id="score">0</span>
+      <span class="score-label">LIVES</span><span class="score-val" id="lives">3</span>
+      <span class="score-label">LEVEL</span><span class="score-val" id="level">1</span>
+    </div>
+    <div class="game-canvas-wrap">
+      <canvas id="gameCanvas" width="480" height="500"></canvas>
+      <div class="overlay" id="overlay">
+        <h2 id="oTitle">BREAKOUT</h2>
+        <p id="oMsg">Move mouse or touch to control paddle</p>
+        <button class="game-btn" id="startBtn">Start Game</button>
+      </div>
+    </div>
+    <p class="game-hint">Mouse / Touch to move paddle · Click to launch</p>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+const W=canvas.width,H=canvas.height;
+
+const ROWS=5,COLS=10,BRICKG=4;
+const BW=(W-BRICKG*(COLS+1))/COLS, BH=22;
+const PAD_W=90,PAD_H=12,PAD_Y=H-40;
+const BALL_R=8;
+
+const BCOLORS=[['#ff4757','#ff6b6b'],['#ff6348','#ffa502'],['#eccc68','#ffd32a'],['#2ed573','#7bed9f'],['#1e90ff','#70a1ff']];
+
+let bricks,ball,padX,score,lives,level,running=false,animId;
+
+function initBricks(){
+  bricks=[];
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+    bricks.push({x:BRICKG+(BW+BRICKG)*c,y:60+(BH+BRICKG)*r,alive:true,row:r});
+}
+
+function initBall(){
+  ball={x:W/2,y:PAD_Y-BALL_R-1,dx:3+level*.5,dy:-(4+level*.3),launched:false};
+}
+
+function startGame(){
+  score=0;lives=3;level=1;
+  document.getElementById('score').textContent=0;
+  document.getElementById('lives').textContent=3;
+  document.getElementById('level').textContent=1;
+  padX=W/2-PAD_W/2;
+  initBricks();initBall();
+  document.getElementById('overlay').classList.add('hidden');
+  running=true;
+  cancelAnimationFrame(animId);
+  animId=requestAnimationFrame(loop);
+}
+
+function draw(){
+  ctx.fillStyle='#0c0c0e';ctx.fillRect(0,0,W,H);
+  // bricks
+  bricks.forEach(b=>{
+    if(!b.alive)return;
+    const[c1,c2]=BCOLORS[b.row];
+    const g=ctx.createLinearGradient(b.x,b.y,b.x,b.y+BH);
+    g.addColorStop(0,c1);g.addColorStop(1,c2);
+    ctx.fillStyle=g;
+    ctx.shadowColor=c1;ctx.shadowBlur=8;
+    ctx.beginPath();ctx.roundRect(b.x,b.y,BW,BH,4);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,255,255,.2)';
+    ctx.fillRect(b.x+4,b.y+3,BW-8,3);
+  });
+  // paddle
+  const pg=ctx.createLinearGradient(padX,PAD_Y,padX+PAD_W,PAD_Y);
+  pg.addColorStop(0,'#e8ff47');pg.addColorStop(1,'#a8d000');
+  ctx.fillStyle=pg;
+  ctx.shadowColor='#e8ff47';ctx.shadowBlur=16;
+  ctx.beginPath();ctx.roundRect(padX,PAD_Y,PAD_W,PAD_H,PAD_H/2);ctx.fill();
+  ctx.shadowBlur=0;
+  // ball
+  ctx.fillStyle='#fff';
+  ctx.shadowColor='rgba(255,255,255,.8)';ctx.shadowBlur=20;
+  ctx.beginPath();ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+}
+
+function update(){
+  if(!ball.launched){ball.x=padX+PAD_W/2;return;}
+  ball.x+=ball.dx;ball.y+=ball.dy;
+  // walls
+  if(ball.x-BALL_R<0){ball.x=BALL_R;ball.dx=Math.abs(ball.dx);}
+  if(ball.x+BALL_R>W){ball.x=W-BALL_R;ball.dx=-Math.abs(ball.dx);}
+  if(ball.y-BALL_R<0){ball.y=BALL_R;ball.dy=Math.abs(ball.dy);}
+  // paddle
+  if(ball.y+BALL_R>=PAD_Y&&ball.y+BALL_R<=PAD_Y+PAD_H&&ball.x>=padX&&ball.x<=padX+PAD_W){
+    const hit=(ball.x-(padX+PAD_W/2))/(PAD_W/2);
+    const angle=hit*60*(Math.PI/180);
+    const speed=Math.sqrt(ball.dx*ball.dx+ball.dy*ball.dy);
+    ball.dx=speed*Math.sin(angle);ball.dy=-speed*Math.cos(angle);
+    ball.y=PAD_Y-BALL_R;
+  }
+  // out
+  if(ball.y>H+20){lives--;document.getElementById('lives').textContent=lives;
+    if(lives<=0){running=false;showOverlay('GAME OVER',`Score: ${score}`);}
+    else initBall();}
+  // bricks
+  let alive=0;
+  bricks.forEach(b=>{
+    if(!b.alive)return; alive++;
+    if(ball.x+BALL_R>b.x&&ball.x-BALL_R<b.x+BW&&ball.y+BALL_R>b.y&&ball.y-BALL_R<b.y+BH){
+      b.alive=false;
+      score+=10*(ROWS-b.row);document.getElementById('score').textContent=score;
+      const overlapX=Math.min(ball.x+BALL_R-b.x, b.x+BW-ball.x+BALL_R);
+      const overlapY=Math.min(ball.y+BALL_R-b.y, b.y+BH-ball.y+BALL_R);
+      if(overlapX<overlapY)ball.dx*=-1; else ball.dy*=-1;
+    }
+  });
+  if(alive===0){level++;document.getElementById('level').textContent=level;initBricks();initBall();}
+}
+
+function loop(){
+  if(!running)return;
+  update();draw();animId=requestAnimationFrame(loop);
+}
+
+function showOverlay(t,m){
+  document.getElementById('oTitle').textContent=t;
+  document.getElementById('oMsg').textContent=m;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+document.getElementById('startBtn').addEventListener('click',startGame);
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left-PAD_W/2;
+  padX=Math.max(0,Math.min(W-PAD_W,x));
+});
+canvas.addEventListener('click',()=>{if(!ball.launched)ball.launched=true;});
+canvas.addEventListener('touchmove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const x=e.touches[0].clientX-rect.left-PAD_W/2;
+  padX=Math.max(0,Math.min(W-PAD_W,x));e.preventDefault();
+},{passive:false});
+canvas.addEventListener('touchstart',()=>{if(!ball.launched)ball.launched=true;},{passive:true});
+
+// Init draw
+padX=W/2-PAD_W/2;initBricks();initBall();draw();
+</script>
+</body>
+</html>
